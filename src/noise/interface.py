@@ -8,6 +8,7 @@ from . import enums
 
 def get_noise_estimate(polygons: gpd.GeoDataFrame, city: enums.City = enums.City.PARIS, measurement: enums.Measurement = enums.Measurement.DAY_EVENING_NIGHT) -> gpd.GeoDataFrame:
     polygons_ = polygons.reset_index(names='polygon_id')
+    polygons_.to_crs(epsg=2154, inplace=True)
     noise_data_ = data.data(city=city, measurement=measurement)
 
     polygons_matched_with_noise_data = gpd.sjoin(polygons_, noise_data_, how='left', predicate='intersects')[['polygon_id', 'Classe', 'geometry', 'index_right']]
@@ -18,6 +19,7 @@ def get_noise_estimate(polygons: gpd.GeoDataFrame, city: enums.City = enums.City
     polygons_.set_index('polygon_id', inplace=True)
     polygons_ = polygons_.merge(polygons_with_noise_estimate, left_index=True, right_index=True)
     polygons_ = gpd.GeoDataFrame(polygons_, geometry='geometry')
+    polygons_.rename(columns={'Classe': 'noise_estimate'}, inplace=True)
     return polygons_
 
 
